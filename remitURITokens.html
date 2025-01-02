@@ -1,0 +1,204 @@
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>REMIT URITokens</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      crossorigin="anonymous"
+    />
+    <style>
+      body {
+        background-color: #ce91e2;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container mt-2 pb-4">
+      <h1 id="remittransactor">REMIT URITokens</h1>
+
+      <button class="btn mb-3 btn-dark" style="display: block" id="sub">
+        Account: ... waiting sign in ...
+      </button>
+      <p></p>
+      <button class="btn mb-3 btn-dark" id="auth" style="display: block">
+        Click to sign in
+      </button>
+      <button class="btn mb-3 btn-warning" style="display: none" id="logout">
+        Logout
+      </button>
+      <p></p>
+
+      <h2 id="titol1" style="display: none">XAHAU MAINNET</h2>
+
+      <button
+        class="btn mb-3 btn-primary"
+        style="display: none"
+        id="destinationbuton"
+      >
+        Step 1. Paste the Destination:
+      </button>
+      <td>
+        <input
+          type="text"
+          style="display: none"
+          id="destinationfield"
+          value=""
+          size="80"
+        />
+      </td>
+      <p></p>
+
+      <form id="myForm" style="display: none" action="#">
+        <button class="btn mb-3 btn-primary" style="display: none" id="label2">
+          Step 2. Paste an URITokenID and click Enter, repeat the proces before
+          sending the remit transaction with all the URITokens you want to
+          transfer (max. 32 URITokens):
+        </button>
+        <input type="text" size="80" id="enteredURIT" name="getNameValue" />
+        <button type="button" onclick="project5Part2();">Enter</button>
+      </form>
+
+      <button
+        class="btn mb-3 btn-danger"
+        style="display: none"
+        id="signrequest1"
+      >
+        Step 3. Click here to send remit transaction
+      </button>
+
+      <table>
+        <tr valign="top">
+          <td>
+            <p align="left">
+              <textarea
+                id="resultfield1"
+                cols="82"
+                rows="2"
+                style="display: none"
+              ></textarea>
+            </p>
+          </td>
+        </tr>
+      </table>
+      <p></p>
+
+      <a
+        href="https://skunk-proper-smoothly.ngrok-free.app/tools"
+        id="goback"
+        style="display: block"
+        >Go back to Ridworld Tools</a
+      >
+    </div>
+
+    <script type="module">
+      import "https://xumm.app/assets/cdn/xumm-oauth2-pkce.min.js?v=2.7.1";
+
+      const xumm = new XummPkce("12e14dd5-83b3-418e-a7dc-430c434513e5", {
+        implicit: true,
+        redirectUrl: document.location.href + "?custom_state=test",
+      });
+
+      const signedIn = async () => {
+        const state = await xumm.state();
+        if (state?.me?.sub) {
+          document.getElementById("sub").innerText =
+            "Account:  " + state.me.sub;
+          document.getElementById("auth").style.display = "none";
+          document.getElementById("logout").style.display = "block";
+          document.getElementById("titol1").style.display = "block";
+
+          document.getElementById("destinationbuton").style.display = "block";
+          document.getElementById("destinationfield").style.display = "block";
+
+          document.getElementById("label2").style.display = "block";
+
+          document.getElementById("myForm").style.display = "block";
+          document.getElementById("enteredURIT").style.display = "block";
+
+          //document.getElementById("URIT2buton").style.display = "block";
+          //  document.getElementById("URIT2field").style.display = "block";
+          //document.getElementById("URIT3buton").style.display = "block";
+          // document.getElementById("URIT3field").style.display = "block";
+          //document.getElementById("URIT4buton").style.display = "block";
+
+          document.getElementById("signrequest1").style.display = "block";
+          document.getElementById("resultfield1").style.display = "block";
+          document.getElementById("goback").style.display = "block";
+        }
+      };
+
+      document.getElementById("auth").onclick = () =>
+        xumm.authorize().catch((e) => console.log("e", e));
+
+      //MAINNET 21337
+      document.getElementById("signrequest1").onclick = async () => {
+        const { sdk } = await xumm.state();
+        const payload = await sdk.payload.create({
+          TransactionType: "Remit",
+          NetworkID: 21337,
+          Destination: destinationfield.value,
+          URITokenIDs: myArray,
+        });
+
+        if (payload.pushed) {
+          window.open(payload.next.no_push_msg_received);
+          console.log(payload);
+        }
+        document.getElementById("resultfield1").innerHTML =
+          "Pushed:  " + payload.next.no_push_msg_received;
+        /*document.getElementById("resultfield1").value =
+                "Pushed:  " + payload.next.no_push_msg_received;*/
+      };
+
+      document.getElementById("logout").onclick = () => {
+        xumm.logout();
+        document.getElementById("sub").innerText =
+          "Account: ... waiting sign in ...";
+        document.getElementById("auth").style.display = "block";
+        document.getElementById("logout").style.display = "none";
+        document.getElementById("titol1").style.display = "none";
+
+        document.getElementById("destinationbuton").style.display = "none";
+        document.getElementById("destinationfield").style.display = "none";
+        document.getElementById("label2").style.display = "none";
+
+        document.getElementById("myForm").style.display = "none";
+        document.getElementById("enteredURIT").style.display = "none";
+
+        document.getElementById("signrequest1").style.display = "none";
+        document.getElementById("resultfield1").style.display = "none";
+
+        document.getElementById("goback").style.display = "block";
+      };
+
+      xumm.on("error", (error) => console.log("error", error));
+      xumm.on("success", () => signedIn());
+      xumm.on("retrieved", () => signedIn());
+    </script>
+    <script src="https://unpkg.com/xrpl@2.2.3"></script>
+
+    <script type="text/javascript">
+      var myArray = new Array();
+      function project5Part2() {
+        var name = document.getElementById("enteredURIT").value;
+        if (
+          !(typeof name === "undefined") &&
+          name != null &&
+          name.trim() != ""
+        ) {
+          myArray.push(name);
+        }
+        console.log(myArray);
+        document.getElementById("enteredURIT").value = "";
+      }
+    </script>
+
+    <script>
+      if (typeof module !== "undefined") {
+        const xrpl = require("xrpl");
+      }
+    </script>
+  </body>
+</html>
